@@ -8,6 +8,9 @@ npm i
 
 ### Run IOS:
 ```bash
+cd ./ios
+pod install
+cd ../
 react-native run-ios
 ```
 
