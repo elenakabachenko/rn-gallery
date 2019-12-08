@@ -2,13 +2,20 @@ import React from 'react';
 import {View, Text, StyleSheet, Image, TouchableHighlight} from 'react-native';
 
 const Row = props => (
-  <TouchableHighlight onPress={() => props.navigate('ImageViewer', {
-    remote: props.data.urls.regular,
-  })}>
-    <View style={styles.container}>
-      <Image source={{uri: props.data.urls.small}} style={styles.photo}/>
-      <Text style={styles.authorText}>{`Author: ${props.data.user.name}`}</Text>
-    </View>
+  <TouchableHighlight
+    onPress={() =>
+      props.navigate('ImageViewer', {
+        remote: props.data.urls.regular,
+      })
+    }>
+    {props.data.urls && (
+      <View style={styles.container}>
+        <Image source={{uri: props.data.urls.small}} style={styles.photo} />
+        <Text style={styles.authorText}>{`Author: ${
+          props.data.user.name
+        }`}</Text>
+      </View>
+    )}
   </TouchableHighlight>
 );
 

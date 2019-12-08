@@ -5,116 +5,73 @@ import {
   FlatList,
   StyleSheet,
   ActivityIndicator,
-  Text,
-  TouchableOpacity,
 } from 'react-native';
-import {
-  CLIENT_ID,
-  URL
-} from '../actions/types';
 import {connect} from 'react-redux';
-import {itemsFetchData, fetchingItemsFromServer,installOffset} from '../actions/index';
+import {fetchImages} from '../actions/images';
 import Row from './Row';
 
 class ListDemo extends React.Component {
   static navigationOptions = {
-    title: 'List of photos',
+    title: 'List of images',
   };
-  constructor(props) {
-    super(props);
-  }
 
   componentDidMount() {
-    this.props.fetchData(`${URL}/?client_id=${CLIENT_ID}&page=${this.props.offset}`);
-    this.props.installOffset(this.props.offset);
-
+    this.props.fetchImages();
   }
 
-  loadMoreData = () => {
-    this.props.isFetchingProcess(true);
-    this.props.fetchData(`${URL}/?client_id=${CLIENT_ID}&page=${this.props.offset}`);
-    this.props.installOffset(this.props.offset);
-    this.props.isFetchingProcess(false);
-  }
-
-  renderSeparator = () => {
-    return (
-      <View style={styles.separator}/>
-    );
-  };
-  renderFooter() {
-    return (
-      //Footer View with Load More button
-      <View style={styles.footer}>
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={this.loadMoreData}
-          //On Click of button calling loadMoreData function to load more data
-          style={styles.loadMoreBtn}>
-          <Text style={styles.btnText}>Load More</Text>
-          {this.props.isFetching ? (
-            <ActivityIndicator color="white" style={{ marginLeft: 8 }} />
-          ) : null}
-        </TouchableOpacity>
-      </View>
-    );
-  }
-/*  renderFooter = () => {
+  renderFooter = () => {
     if (!this.props.isLoading) {
       return null;
     }
-    return (
-      <View style={styles.footer}>
-        <ActivityIndicator animating size="large"/>
-      </View>
-    );
-  };*/
-  render() {
-    const {navigate} = this.props.navigation;
-    if (this.props.isFailed) {
-      return (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorMessage}>
-            Sorry! There was an error loading the items
-          </Text>
-        </View>
-      );
+    return <ActivityIndicator style={{color: '#000'}} />;
+  };
+
+  loadMoreData = () => {
+    const {
+      fetchImages,
+      isLoading,
+      meta: {page},
+    } = this.props;
+
+    if (!isLoading) {
+      fetchImages(page + 1);
     }
+  };
+
+  renderSeparator = () => {
+    return <View style={styles.separator} />;
+  };
+
+  render() {
+    const {navigation, isLoading, data} = this.props;
+    const {navigate} = navigation;
+
     return (
       <SafeAreaView style={styles.container}>
         <FlatList
-          data={this.props.items}
-          renderItem={({item}) => <Row data={item} navigate={navigate}/>}
+          refreshing={isLoading}
+          data={data}
+          renderItem={({item}) => <Row data={item} navigate={navigate} />}
           keyExtractor={item => item.id}
           ItemSeparatorComponent={this.renderSeparator}
-          ListFooterComponent={this.renderFooter.bind(this)}
+          onEndReached={this.loadMoreData}
+          onEndReachedThreshold={1}
+          ListFooterComponent={this.renderFooter}
         />
       </SafeAreaView>
     );
   }
 }
 
-const mapStateToProps = state => {
-  return {
-    items: state.gallery.items,
-    isFailed: state.gallery.isFailed,
-    isLoading: state.gallery.isLoading,
-    isFetching: state.gallery.isFetching,
-    offset: state.gallery.offset,
-  };
-};
-
-const mapDispatchToProps = dispatch => {
-  return {
-    fetchData: url => dispatch(itemsFetchData(url)),
-    isFetchingProcess:(value) => dispatch(fetchingItemsFromServer(value)),
-    installOffset:(offset) => dispatch(installOffset(offset)),
-  };
-};
+const mapStateToProps = ({images: {data, isLoading, meta}}) => ({
+  data,
+  isLoading,
+  meta,
+});
 
 export default connect(
   mapStateToProps,
-  mapDispatchToProps,
+  {fetchImages},
 )(ListDemo);
 
 const styles = StyleSheet.create({
